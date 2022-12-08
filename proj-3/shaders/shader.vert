@@ -6,10 +6,10 @@ attribute vec4 vPosition;
 attribute vec3 vNormal;
 
 varying vec4 fNormal;
-varying vec3 posC;
+varying vec4 fPosition;
 
 void main() {
-    posC = (mModelView * vPosition).xyz;
+    fPosition = vPosition;
 
     gl_Position = mProjection * mModelView * vPosition;
     fNormal = vec4(vNormal, 0.0);

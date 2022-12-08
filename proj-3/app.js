@@ -23,12 +23,12 @@ const MAX_LIGHTS = 1;
 
 const FLOOR_LENGTH = 10;
 const FLOOR_HEIGHT = 0.5; 
-const FLOOR_COLOR = vec3(168/255, 113/255, 71/255);
+const FLOOR_COLOR = vec3(168, 113, 71);
 
 const OBJECT_SCALE = [2, 2, 2];
 const BUNNY_SCALE = [10, 10, 10];
-const BUNNY_COLOR = vec3(230/255, 108/255, 21/255);
-const PYRAMID_COLOR = vec3(27/255, 71/255, 227/255);
+const BUNNY_COLOR = vec3(230, 108, 21);
+const PYRAMID_COLOR = vec3(27, 71, 227);
 const TORUS_COLOR = vec3(189/255, 43/255, 196/255);
 const CUBE_COLOR = vec3(47/255, 241/255, 245/255);
 
@@ -85,14 +85,14 @@ function setup(shaders)
     ];
 
     let floor = new materialClass(
-            vec3(255, 0.0, 0.0),
-            vec3(255, 0.0, 0.0),
-            vec3(255, 255, 255),
+            vec3(1, 1, 1),
+            vec3(10, 10, 10),
+            vec3(0, 10, 100),
             6.0);
     let bunny = new materialClass(
-            vec3(0, 150, 100),
-            vec3(0, 125, 100),
-            vec3(200, 200, 200),
+            vec3(2, 2, 2),
+            vec3(1, 1, 1),
+            vec3(1, 1, 1),
             10.0);
     let cube = new materialClass(
             vec3(255, 0.0, 0.0),
@@ -127,9 +127,9 @@ function setup(shaders)
     const eyeGUI = cameraGUI.addFolder("eye");
     const atGUI = cameraGUI.addFolder("at");
     const upGUI = cameraGUI.addFolder("up");
-    eyeGUI.add(camera.eye, 0).name("x").step(0.1);
-    eyeGUI.add(camera.eye, 1).name("y").step(0.1);
-    eyeGUI.add(camera.eye, 2).name("z").step(0.1);
+    eyeGUI.add(camera.eye, 0, -10, 10, 0.02).name("x").step(0.1);
+    eyeGUI.add(camera.eye, 1, -10, 10, 0.02).name("y").step(0.1);
+    eyeGUI.add(camera.eye, 2, -10, 10, 0.02).name("z").step(0.1);
     atGUI.add(camera.at, 0).name("x").step(0.1);
     atGUI.add(camera.at, 1).name("y").step(0.1);
     atGUI.add(camera.at, 2).name("z").step(0.1);
@@ -212,7 +212,7 @@ function setup(shaders)
             gl.uniform3fv(gl.getUniformLocation(program, "uLights[" + i + "].ambient"), lights[i].ambient);
             gl.uniform3fv(gl.getUniformLocation(program, "uLights[" + i + "].diffuse"), lights[i].diffuse);
             gl.uniform3fv(gl.getUniformLocation(program, "uLights[" + i + "].specular"), lights[i].specular);
-            gl.uniform4fv(gl.getUniformLocation(program, "uLights[" + i + "].position"), lights[i].position);
+            gl.uniform4fv(gl.getUniformLocation(program, "uLights[" + i + "].position"), mult(modelView(), lights[i].position));
             gl.uniform3fv(gl.getUniformLocation(program, "uLights[" + i + "].axis"), lights[i].axis);
             gl.uniform1f(gl.getUniformLocation(program, "uLights[" + i + "].aperture"), lights[i].aperture);
             gl.uniform1f(gl.getUniformLocation(program, "uLights[" + i + "].cutoff"), lights[i].cutoff);

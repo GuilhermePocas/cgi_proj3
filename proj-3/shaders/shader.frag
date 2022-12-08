@@ -29,14 +29,21 @@ uniform LightInfo uLights[MAX_LIGHTS];
 uniform MaterialInfo uMaterial;
 
 varying vec4 fNormal;
-varying vec3 posC;
+varying vec4 fPosition;
 
 void main() {
+    vec3 posC = (mModelView * fPosition).xyz;
+
     vec3 I = vec3(0, 0, 0);
     for(int i=0; i<MAX_LIGHTS; i++) {
         if(i == uNLights) break;
 
-        vec3 L = normalize(uLights[i].position.xyz - posC);
+        vec3 L;
+        if(uLights[i].position.w == 0.0)
+            L = normalize(uLights[i].position.xyz);
+        else
+            L = normalize(uLights[i].position.xyz - posC);
+
         vec3 N = normalize((mNormals * fNormal).xyz);
         vec3 V = normalize(-posC);
         vec3 R = reflect(-L, N);
@@ -57,5 +64,5 @@ void main() {
         
         I += ambientColor + diffuse + specular;
     }
-    gl_FragColor = vec4(I, 1.0);
+    gl_FragColor = vec4(I.x/255.0, I.y/255.0, I.z/255.0, 1.0);
 }
