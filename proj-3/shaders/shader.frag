@@ -20,15 +20,17 @@ struct MaterialInfo {
 };
 
 uniform mat4 mModelView;
-uniform mat4 mProjection;
 uniform mat4 mNormals;
+uniform mat4 mView;
+uniform mat4 mViewNormals;
+uniform mat4 mProjection;
 
 uniform int uNLights;
 
 uniform LightInfo uLights[MAX_LIGHTS];
 uniform MaterialInfo uMaterial;
 
-varying vec4 fNormal;
+varying vec3 fNormal;
 varying vec4 fPosition;
 
 void main() {
@@ -39,12 +41,13 @@ void main() {
         if(i == uNLights) break;
 
         vec3 L;
+        
         if(uLights[i].position.w == 0.0)
             L = normalize(uLights[i].position.xyz);
         else
             L = normalize(uLights[i].position.xyz - posC);
 
-        vec3 N = normalize((mNormals * fNormal).xyz);
+        vec3 N = normalize(fNormal);
         vec3 V = normalize(-posC);
         vec3 R = reflect(-L, N);
 

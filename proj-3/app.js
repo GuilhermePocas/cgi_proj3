@@ -90,10 +90,10 @@ function setup(shaders)
             vec3(0, 10, 100),
             6.0);
     let bunny = new materialClass(
-            vec3(2, 2, 2),
+            vec3(0.1, 1, 0.5),
             vec3(1, 1, 1),
             vec3(1, 1, 1),
-            10.0);
+            1.0);
     let cube = new materialClass(
             vec3(255, 0.0, 0.0),
             vec3(255, 0.0, 0.0),
@@ -136,6 +136,26 @@ function setup(shaders)
     upGUI.add(camera.up, 0, -1, 1, 0.02).name("x").step(0.1).listen();
     upGUI.add(camera.up, 1, -1, 1, 0.02).name("y").step(0.1).listen();
     upGUI.add(camera.up, 2, -1, 1, 0.02).name("z").step(0.1).listen();
+
+    const lightsGUI = sceneGUI.addFolder("lights");
+    for(let i=0; i<lights.length; i++) {
+        let light = lights[i];
+        const thisLightGUI = lightsGUI.addFolder("light " + (i+1));
+        const lightPositionGUI = thisLightGUI.addFolder("position")
+        lightPositionGUI.add(light.position, 0, -40, 40, 0.02).name("x").step(0.1);
+        lightPositionGUI.add(light.position, 1, -40, 40, 0.02).name("y").step(0.1);
+        lightPositionGUI.add(light.position, 2, -40, 40, 0.02).name("z").step(0.1);
+        lightPositionGUI.add(light.position, 3, 0, 1, 0.02).name("w").step(0.1);
+        const lightIntensityGUI = thisLightGUI.addFolder("intensities")
+        lightIntensityGUI.addColor(light, "ambient").name("ambient");
+        lightIntensityGUI.addColor(light, "diffuse").name("diffuse");
+        lightIntensityGUI.addColor(light, "specular").name("specular");
+    }
+
+    const materialGUI = sceneGUI.addFolder("material");
+    materialGUI.addColor(bunny, "Ka");
+    materialGUI.addColor(bunny, "Kd");
+    materialGUI.addColor(bunny, "Ks");
 
 
 
@@ -284,10 +304,15 @@ function setup(shaders)
             
         }
     
-        loadMatrix(lookAt([camera.eye[0], camera.eye[1], camera.eye[2]],
+        let mView = lookAt([camera.eye[0], camera.eye[1], camera.eye[2]],
                         [camera.at[0], camera.at[1], camera.at[2]],
-                        [camera.up[0], camera.up[1], camera.up[2]]));
+                        [camera.up[0], camera.up[1], camera.up[2]]);
+        loadMatrix(mView);
         
+        gl.uniformMatrix4fv(gl.getUniformLocation(program, "mView"), false, flatten(mView));
+        let mViewNormals = inverse(transpose(modelView()));
+        gl.uniformMatrix4fv(gl.getUniformLocation(program, "mViewNormals"), false, flatten(mViewNormals));
+
         uploadLights();
         scene();
     }
