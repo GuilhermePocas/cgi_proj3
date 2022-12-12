@@ -52,9 +52,9 @@ void main() {
         vec3 R = reflect(-L, N);
 
 
-        vec3 ambientColor = uLights[i].ambient * uMaterial.Ka;
-        vec3 diffuseColor = uLights[i].diffuse * uMaterial.Kd;
-        vec3 specularColor = uLights[i].specular * uMaterial.Ks;
+        vec3 ambientColor = uLights[i].ambient/255.0 * uMaterial.Ka/255.0;
+        vec3 diffuseColor = uLights[i].diffuse/255.0 * uMaterial.Kd/255.0;
+        vec3 specularColor = uLights[i].specular/255.0 * uMaterial.Ks/255.0;
 
         float diffuseFactor = max(dot(L, N), 0.0);
         vec3 diffuse = diffuseFactor * diffuseColor;
@@ -68,5 +68,5 @@ void main() {
         
         I += ambientColor + diffuse + specular;
     }
-    gl_FragColor = vec4(I.x/(255.0*2.0), I.y/(255.0*2.0), I.z/(255.0*2.0), 1.0);
+    gl_FragColor = vec4(I.x, I.y, I.z, 1.0);
 }

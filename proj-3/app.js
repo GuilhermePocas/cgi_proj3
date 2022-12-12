@@ -75,35 +75,35 @@ function setup(shaders)
     
     let lights = [
         new lightClass(
-        vec3(50,50,50),
-        vec3(60,60,60),
+        vec3(100,100,100),
+        vec3(100,100,100),
         vec3(200,200,200),
-        vec4(40.0,0.0,10.0,1.0),
+        vec4(10.0,5.0,8.0,1.0),
         vec3(30.0, 0.0, -1.0),
         10.0,
         -1)
     ];
 
     let floor = new materialClass(
-            vec3(1, 1, 1),
-            vec3(10, 10, 10),
-            vec3(0, 10, 100),
+            vec3(181, 140, 80),
+            vec3(80, 100, 100),
+            vec3(100, 100, 100),
             6.0);
     let bunny = new materialClass(
-            vec3(0.1, 1, 0.5),
-            vec3(1, 1, 1),
-            vec3(1, 1, 1),
-            1.0);
-    let cube = new materialClass(
-            vec3(255, 0.0, 0.0),
-            vec3(255, 0.0, 0.0),
-            vec3(255, 0, 255),
-            5.0);
+            vec3(127, 226, 235),
+            vec3(100, 120, 100),
+            vec3(150, 150, 150),
+            1.5);
+    let cylinder = new materialClass(
+            vec3(147, 21, 245),
+            vec3(25, 100.0, 80.0),
+            vec3(25, 90, 10),
+            10.0);
     let pyramid = new materialClass(
-            vec3(255, 0.0, 0.0),
-            vec3(255, 0.0, 0.0),
-            vec3(255, 0, 255),
-            4.0);
+            vec3(250, 231, 60),
+            vec3(230, 255, 30),
+            vec3(100, 90, 60),
+            12.0);
     let torus = new materialClass(
             vec3(255, 0.0, 0.0),
             vec3(255, 0.0, 0.0),
@@ -197,7 +197,7 @@ function setup(shaders)
     }
 
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
-    SPHERE.init(gl);
+    CYLINDER.init(gl);
     PYRAMID.init(gl);
     BUNNY.init(gl);
     CUBE.init(gl);
@@ -264,11 +264,11 @@ function setup(shaders)
             BUNNY.draw(gl, program, mode);
         popMatrix();
         pushMatrix();
-            uploadCurrentMaterial(cube);
+            uploadCurrentMaterial(cylinder);
             multTranslation([2, 1, -2]);
             multScale(OBJECT_SCALE);
             uploadModelView();
-            CUBE.draw(gl, program, mode);
+            CYLINDER.draw(gl, program, mode);
         popMatrix();
         pushMatrix();
             uploadCurrentMaterial(pyramid);
