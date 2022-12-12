@@ -156,6 +156,7 @@ function setup(shaders)
     materialGUI.addColor(bunny, "Ka");
     materialGUI.addColor(bunny, "Kd");
     materialGUI.addColor(bunny, "Ks");
+    materialGUI.add(bunny, "shininess", 0, 20, 1)
 
 
 

@@ -61,11 +61,12 @@ void main() {
 
         float specularFactor = pow(max(dot(N,R), 0.0), uMaterial.shininess);
         vec3 specular = specularFactor * specularColor;
+        
         if(dot(L, N) < 0.0) {
             specular = vec3(0.0, 0.0, 0.0);
         }
         
         I += ambientColor + diffuse + specular;
     }
-    gl_FragColor = vec4(I.x/255.0, I.y/255.0, I.z/255.0, 1.0);
+    gl_FragColor = vec4(I.x/(255.0*2.0), I.y/(255.0*2.0), I.z/(255.0*2.0), 1.0);
 }
