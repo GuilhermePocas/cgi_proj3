@@ -143,9 +143,9 @@ function setup(shaders)
     eyeGUI.add(camera.eye, 0, -180, 180, 1).name("x").step(0.1);
     eyeGUI.add(camera.eye, 1, -180, 180, 1).name("y").step(0.1);
     eyeGUI.add(camera.eye, 2, -180, 180, 1).name("z").step(0.1);
-    atGUI.add(camera.at, 0).name("x").step(0.1);
-    atGUI.add(camera.at, 1).name("y").step(0.1);
-    atGUI.add(camera.at, 2).name("z").step(0.1);
+    atGUI.add(camera.at, 0, -180, 180, 1).name("x").step(0.1);
+    atGUI.add(camera.at, 1, -180, 180, 1).name("y").step(0.1);
+    atGUI.add(camera.at, 2, -180, 180, 1).name("z").step(0.1);
     upGUI.add(camera.up, 0, -1, 1, 0.02).name("x").step(0.1).listen();
     upGUI.add(camera.up, 1, -1, 1, 0.02).name("y").step(0.1).listen();
     upGUI.add(camera.up, 2, -1, 1, 0.02).name("z").step(0.1).listen();
@@ -240,6 +240,8 @@ function setup(shaders)
     var old_x, old_y;
     var dX = 0, dY = 0;
     let mousedown = function (e) {
+        //ignore if mouse is in settings page
+        if(e.pageX+sceneGUI.__ul.clientWidth>canvas.width && e.pageY<sceneGUI.__ul.clientHeight) return;
         drag = true;
         old_x = e.pageX;
         old_y = e.pageY;
