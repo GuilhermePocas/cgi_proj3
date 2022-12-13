@@ -9,7 +9,7 @@ import * as CYLINDER from '../../libs/objects/cylinder.js';
 import * as PYRAMID from '../../libs/objects/pyramid.js';
 import * as TORUS from '../../libs/objects/torus.js';
 import * as BUNNY from '../../libs/objects/bunny.js'
-import { rotateY } from "../../libs/MV.js";
+import { rotateX, rotateY, rotateZ } from "../../libs/MV.js";
 
 /** @type WebGLRenderingContext */
 let gl;
@@ -19,25 +19,24 @@ let speed = 1/144.0;     // Speed (how many days added to time on each render pa
 let mode;               // Drawing mode (gl.LINES or gl.TRIANGLES)
 let animation = true;   // Animation is running
 
-const MAX_LIGHTS = 1;
-
 const FLOOR_LENGTH = 10;
 const FLOOR_HEIGHT = 0.5; 
-const FLOOR_COLOR = vec3(168, 113, 71);
 
 const OBJECT_SCALE = [2, 2, 2];
 const BUNNY_SCALE = [10, 10, 10];
-const BUNNY_COLOR = vec3(230, 108, 21);
-const PYRAMID_COLOR = vec3(27, 71, 227);
-const TORUS_COLOR = vec3(189/255, 43/255, 196/255);
-const CUBE_COLOR = vec3(47/255, 241/255, 245/255);
+
+const PONTUAL = 0;
+const DIRECTIONAL = 1;
+const SPOTLIGHT = 2;
 
 const VP_DISTANCE = 10;
 
-let nLights = 1;
+let nLights = 3;
 
 class lightClass {
-    constructor(ambient, diffuse, specular, position, axis, aperture, cutoff) {
+    constructor(on, type, ambient, diffuse, specular, position, axis, aperture, cutoff) {
+        this.on = on;
+        this.type = type;
         this.ambient = ambient;
         this.diffuse = diffuse;
         this.specular = specular;
@@ -68,20 +67,36 @@ function setup(shaders)
         eye:vec3(0,5,10),
         at:vec3(0,0,0),
         up: vec3(0,1,0),
-        fovy:45,
+        fovy:55,
         near: 0.1,
         far:40
     };
     
     let lights = [
-        new lightClass(
-        vec3(100,100,100),
-        vec3(100,100,100),
-        vec3(200,200,200),
-        vec4(10.0,5.0,8.0,1.0),
-        vec3(30.0, 0.0, -1.0),
-        10.0,
-        -1)
+        new lightClass(true, 0,
+            vec3(50,50,50),
+            vec3(160,160,160),
+            vec3(100,100,100),
+            vec4(10.0,5.0,8.0,0.0),
+            vec3(30.0, 0.0, -1.0),
+            10.0,
+            -1),
+        new lightClass(false, 1,
+            vec3(50,50,50),
+            vec3(100,100,100),
+            vec3(100,100,100),
+            vec4(-10.0,5.0,8.0,0.0),
+            vec3(30.0, 0.0, 0.0),
+            10.0,
+            -1),
+        new lightClass(true, 2,
+            vec3(50,50,50),
+            vec3(100,100,100),
+            vec3(100,100,100),
+            vec4(0.1,5.0,0.1,0.0),
+            vec3(0.1, -10.0, 0.1),
+            10.0,
+            10)
     ];
 
     let floor = new materialClass(
@@ -92,22 +107,22 @@ function setup(shaders)
     let bunny = new materialClass(
             vec3(127, 226, 235),
             vec3(100, 120, 100),
-            vec3(150, 150, 150),
-            1.5);
+            vec3(250, 250, 250),
+            100);
     let cylinder = new materialClass(
             vec3(147, 21, 245),
             vec3(25, 100.0, 80.0),
-            vec3(25, 90, 10),
+            vec3(90, 90, 90),
             10.0);
     let pyramid = new materialClass(
             vec3(250, 231, 60),
-            vec3(230, 255, 30),
-            vec3(100, 90, 60),
+            vec3(230, 255, 80),
+            vec3(200, 200, 200),
             12.0);
     let torus = new materialClass(
+            vec3(255, 0.0, 50.0),
             vec3(255, 0.0, 0.0),
-            vec3(255, 0.0, 0.0),
-            vec3(255, 0, 255),
+            vec3(200, 200, 200),
             2.0);
         
 
@@ -115,7 +130,7 @@ function setup(shaders)
     const optionsGUI = sceneGUI.addFolder("options");
 
     optionsGUI.add( options,"backCulling").name("backface culling")
-    .onChange(function(x) {if(x) gl.enable(gl.CULL_FACE); else gl.disable(gl.CULL_FACE);})  
+    .onChange(function(x) {if(x) gl.enable(gl.CULL_FACE); else gl.disable(gl.CULL_FACE);}) 
 
     optionsGUI.add( options,"depthTest").name("depth test")
     .onChange(function(x) {if(x) gl.enable(gl.DEPTH_TEST); else gl.disable(gl.DEPTH_TEST);})
@@ -141,22 +156,35 @@ function setup(shaders)
     for(let i=0; i<lights.length; i++) {
         let light = lights[i];
         const thisLightGUI = lightsGUI.addFolder("light " + (i+1));
+        thisLightGUI.add(light,"on");
+        thisLightGUI.add(light, 'type', {"pontual": PONTUAL, "directional": DIRECTIONAL, "spotlight":SPOTLIGHT});
+
+
         const lightPositionGUI = thisLightGUI.addFolder("position")
         lightPositionGUI.add(light.position, 0, -40, 40, 0.02).name("x").step(0.1);
         lightPositionGUI.add(light.position, 1, -40, 40, 0.02).name("y").step(0.1);
         lightPositionGUI.add(light.position, 2, -40, 40, 0.02).name("z").step(0.1);
         lightPositionGUI.add(light.position, 3, 0, 1, 0.02).name("w").step(0.1);
-        const lightIntensityGUI = thisLightGUI.addFolder("intensities")
+
+        const lightIntensityGUI = thisLightGUI.addFolder("intensities");
         lightIntensityGUI.addColor(light, "ambient").name("ambient");
         lightIntensityGUI.addColor(light, "diffuse").name("diffuse");
         lightIntensityGUI.addColor(light, "specular").name("specular");
+
+        thisLightGUI.add(light, "aperture", 0, 10, 0.02).step(0.1);
+        thisLightGUI.add(light, "cutoff", 0, 100, 1).step(0.1);
+
+        const lightAxisGUI = thisLightGUI.addFolder("axis");
+        lightAxisGUI.add(light.axis, 0, -20, 20, 0.02).name("x").step(0.1);
+        lightAxisGUI.add(light.axis, 1, -20, 20, 0.02).name("y").step(0.1);
+        lightAxisGUI.add(light.axis, 2, -20, 20, 0.02).name("z").step(0.1);
     }
 
-    const materialGUI = sceneGUI.addFolder("material");
+    const materialGUI = sceneGUI.addFolder("bunny material");
     materialGUI.addColor(bunny, "Ka");
     materialGUI.addColor(bunny, "Kd");
     materialGUI.addColor(bunny, "Ks");
-    materialGUI.add(bunny, "shininess", 0, 20, 1)
+    materialGUI.add(bunny, "shininess", 1, 100, 1)
 
 
 
@@ -206,6 +234,35 @@ function setup(shaders)
     
     window.requestAnimationFrame(render);
 
+    /*let drag = false;
+    var old_x, old_y;
+    var dX = 0, dY = 0;
+    document.onmousedown = function (e) {
+        drag = true;
+        old_x = e.pageX;
+        old_y = e.pageY;
+
+        e.preventDefault();
+        return false;
+    };
+
+    document.onmouseup = function (e) {
+        drag = false;
+    };
+
+    document.onmousemove = function (e) {
+        if (!drag) return false;
+        dX = (e.pageX - old_x) / 40;
+        dY = (e.pageY - old_y) / 40;
+
+        old_x = e.pageX, old_y = e.pageY;
+
+        camera.eye[0] +=dX;
+        camera.eye[2] +=dX;
+        camera.eye[1] +=dY;
+
+        e.preventDefault();
+    }*/
 
     function resize_canvas(event)
     {
@@ -230,12 +287,14 @@ function setup(shaders)
         gl.uniform1i(gl.getUniformLocation(program, "uNLights"), nLights);
 
         for(let i=0; i<nLights; i++) {
+            gl.uniform1i(gl.getUniformLocation(program, "uLights[" + i + "].on"), lights[i].on);
+            gl.uniform1i(gl.getUniformLocation(program, "uLights[" + i + "].type"), lights[i].type);
             gl.uniform3fv(gl.getUniformLocation(program, "uLights[" + i + "].ambient"), lights[i].ambient);
             gl.uniform3fv(gl.getUniformLocation(program, "uLights[" + i + "].diffuse"), lights[i].diffuse);
             gl.uniform3fv(gl.getUniformLocation(program, "uLights[" + i + "].specular"), lights[i].specular);
-            gl.uniform4fv(gl.getUniformLocation(program, "uLights[" + i + "].position"), mult(modelView(), lights[i].position));
+            gl.uniform4fv(gl.getUniformLocation(program, "uLights[" + i + "].position"), lights[i].position);
             gl.uniform3fv(gl.getUniformLocation(program, "uLights[" + i + "].axis"), lights[i].axis);
-            gl.uniform1f(gl.getUniformLocation(program, "uLights[" + i + "].aperture"), lights[i].aperture);
+            gl.uniform1f(gl.getUniformLocation(program, "uLights[" + i + "].aperture"), degToRad(lights[i].aperture));
             gl.uniform1f(gl.getUniformLocation(program, "uLights[" + i + "].cutoff"), lights[i].cutoff);
 
         }
@@ -304,7 +363,6 @@ function setup(shaders)
         for(const l in lights) {
             
         }
-    
         let mView = lookAt([camera.eye[0], camera.eye[1], camera.eye[2]],
                         [camera.at[0], camera.at[1], camera.at[2]],
                         [camera.up[0], camera.up[1], camera.up[2]]);
@@ -322,6 +380,14 @@ function setup(shaders)
         gl.useProgram(program);
         const uColor = gl.getUniformLocation(program, "uColor");
         gl.uniform3fv(uColor, color);
+    }
+
+    function radToDeg(r) {
+        return r * 180 / Math.PI;
+    }
+        
+    function degToRad(d) {
+        return d * Math.PI / 180;
     }
 }
 
