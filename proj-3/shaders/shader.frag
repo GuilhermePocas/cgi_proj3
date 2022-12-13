@@ -1,6 +1,6 @@
 precision highp float;
 
-const int MAX_LIGHTS = 3;
+const int MAX_LIGHTS = 5;
 const int PONTUAL = 0;
 const int DIRECTIONAL = 1;
 const int SPOTLIGHT = 2;

@@ -9,7 +9,7 @@ import * as CYLINDER from '../../libs/objects/cylinder.js';
 import * as PYRAMID from '../../libs/objects/pyramid.js';
 import * as TORUS from '../../libs/objects/torus.js';
 import * as BUNNY from '../../libs/objects/bunny.js'
-import { rotateX, rotateY, rotateZ } from "../../libs/MV.js";
+import { rotateX, rotateY, rotateZ, rotate, cross } from "../../libs/MV.js";
 
 /** @type WebGLRenderingContext */
 let gl;
@@ -30,8 +30,6 @@ const DIRECTIONAL = 1;
 const SPOTLIGHT = 2;
 
 const VP_DISTANCE = 10;
-
-let nLights = 3;
 
 class lightClass {
     constructor(on, type, ambient, diffuse, specular, position, axis, aperture, cutoff) {
@@ -77,23 +75,23 @@ function setup(shaders)
             vec3(50,50,50),
             vec3(160,160,160),
             vec3(100,100,100),
-            vec4(10.0,5.0,8.0,0.0),
+            vec4(10.0,5.0,8.0,1.0),
             vec3(30.0, 0.0, -1.0),
             10.0,
-            -1),
+            1),
         new lightClass(false, 1,
             vec3(50,50,50),
             vec3(100,100,100),
             vec3(100,100,100),
-            vec4(-10.0,5.0,8.0,0.0),
+            vec4(-10.0,5.0,8.0,1.0),
             vec3(30.0, 0.0, 0.0),
             10.0,
-            -1),
+            1),
         new lightClass(true, 2,
             vec3(50,50,50),
             vec3(100,100,100),
             vec3(100,100,100),
-            vec4(0.1,5.0,0.1,0.0),
+            vec4(0.1,5.0,0.1,1.0),
             vec3(0.1, -10.0, 0.1),
             10.0,
             10)
@@ -142,9 +140,9 @@ function setup(shaders)
     const eyeGUI = cameraGUI.addFolder("eye");
     const atGUI = cameraGUI.addFolder("at");
     const upGUI = cameraGUI.addFolder("up");
-    eyeGUI.add(camera.eye, 0, -10, 10, 0.02).name("x").step(0.1);
-    eyeGUI.add(camera.eye, 1, -10, 10, 0.02).name("y").step(0.1);
-    eyeGUI.add(camera.eye, 2, -10, 10, 0.02).name("z").step(0.1);
+    eyeGUI.add(camera.eye, 0, -180, 180, 1).name("x").step(0.1);
+    eyeGUI.add(camera.eye, 1, -180, 180, 1).name("y").step(0.1);
+    eyeGUI.add(camera.eye, 2, -180, 180, 1).name("z").step(0.1);
     atGUI.add(camera.at, 0).name("x").step(0.1);
     atGUI.add(camera.at, 1).name("y").step(0.1);
     atGUI.add(camera.at, 2).name("z").step(0.1);
@@ -185,8 +183,6 @@ function setup(shaders)
     materialGUI.addColor(bunny, "Kd");
     materialGUI.addColor(bunny, "Ks");
     materialGUI.add(bunny, "shininess", 1, 100, 1)
-
-
 
 
     let canvas = document.getElementById("gl-canvas");
@@ -234,35 +230,36 @@ function setup(shaders)
     
     window.requestAnimationFrame(render);
 
-    /*let drag = false;
+    let drag = false;
     var old_x, old_y;
     var dX = 0, dY = 0;
-    document.onmousedown = function (e) {
+    let mousedown = function (e) {
         drag = true;
         old_x = e.pageX;
         old_y = e.pageY;
 
-        e.preventDefault();
         return false;
     };
 
-    document.onmouseup = function (e) {
+    let mouseup = function (e) {
         drag = false;
     };
 
-    document.onmousemove = function (e) {
+    let mousemove = function(e){
         if (!drag) return false;
-        dX = (e.pageX - old_x) / 40;
-        dY = (e.pageY - old_y) / 40;
+        dX = (e.pageX - old_x)/5;
+        dY = (e.pageY - old_y)/5;
 
         old_x = e.pageX, old_y = e.pageY;
 
-        camera.eye[0] +=dX;
-        camera.eye[2] +=dX;
-        camera.eye[1] +=dY;
+        let r = rotate(-dY, cross([0, 1, 0], camera.eye))
+        camera.eye = mult(r, vec4(camera.eye, 1))
+        camera.eye = (mult(rotateY(-dX), vec4(camera.eye, 1)))
+    }
 
-        e.preventDefault();
-    }*/
+    document.addEventListener("mousemove", mousemove);
+    document.addEventListener("mouseup", mouseup)
+    document.addEventListener("mousedown", mousedown)
 
     function resize_canvas(event)
     {
@@ -284,9 +281,9 @@ function setup(shaders)
     }
 
     function uploadLights() {
-        gl.uniform1i(gl.getUniformLocation(program, "uNLights"), nLights);
+        gl.uniform1i(gl.getUniformLocation(program, "uNLights"), lights.length);
 
-        for(let i=0; i<nLights; i++) {
+        for(let i=0; i<lights.length; i++) {
             gl.uniform1i(gl.getUniformLocation(program, "uLights[" + i + "].on"), lights[i].on);
             gl.uniform1i(gl.getUniformLocation(program, "uLights[" + i + "].type"), lights[i].type);
             gl.uniform3fv(gl.getUniformLocation(program, "uLights[" + i + "].ambient"), lights[i].ambient);
@@ -360,12 +357,10 @@ function setup(shaders)
         
         gl.uniformMatrix4fv(gl.getUniformLocation(program, "mProjection"), false, flatten(mProjection));
 
-        for(const l in lights) {
-            
-        }
         let mView = lookAt([camera.eye[0], camera.eye[1], camera.eye[2]],
                         [camera.at[0], camera.at[1], camera.at[2]],
                         [camera.up[0], camera.up[1], camera.up[2]]);
+       
         loadMatrix(mView);
         
         gl.uniformMatrix4fv(gl.getUniformLocation(program, "mView"), false, flatten(mView));
