@@ -155,8 +155,8 @@ function setup(shaders)
         let light = lights[i];
         const thisLightGUI = lightsGUI.addFolder("light " + (i+1));
         thisLightGUI.add(light,"on");
-        thisLightGUI.add(light, 'type', {"pontual": PONTUAL, "directional": DIRECTIONAL, "spotlight":SPOTLIGHT});
-
+        const choiceGUI = thisLightGUI.add(light, 'type', {"pontual": PONTUAL, "directional": DIRECTIONAL, "spotlight":SPOTLIGHT})
+        .onChange(function(x){x != SPOTLIGHT ? spotlightGUI.hide() : spotlightGUI.show()});
 
         const lightPositionGUI = thisLightGUI.addFolder("position")
         lightPositionGUI.add(light.position, 0, -40, 40, 0.02).name("x").step(0.1);
@@ -169,13 +169,19 @@ function setup(shaders)
         lightIntensityGUI.addColor(light, "diffuse").name("diffuse");
         lightIntensityGUI.addColor(light, "specular").name("specular");
 
-        thisLightGUI.add(light, "aperture", 0, 10, 0.02).step(0.1);
-        thisLightGUI.add(light, "cutoff", 0, 100, 1).step(0.1);
+        const spotlightGUI = thisLightGUI.addFolder("spotlight settings");
 
-        const lightAxisGUI = thisLightGUI.addFolder("axis");
+        spotlightGUI.add(light, "aperture", 0, 10, 0.02).step(0.1);
+        spotlightGUI.add(light, "cutoff", 0, 100, 1).step(0.1);
+
+        const lightAxisGUI = spotlightGUI.addFolder("axis");
         lightAxisGUI.add(light.axis, 0, -20, 20, 0.02).name("x").step(0.1);
         lightAxisGUI.add(light.axis, 1, -20, 20, 0.02).name("y").step(0.1);
         lightAxisGUI.add(light.axis, 2, -20, 20, 0.02).name("z").step(0.1);
+        
+        if(light.type != SPOTLIGHT)
+            spotlightGUI.hide();
+
     }
 
     const materialGUI = sceneGUI.addFolder("bunny material");
