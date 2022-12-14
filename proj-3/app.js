@@ -67,7 +67,7 @@ function setup(shaders)
     };
     
     let lights = [
-        new lightClass(true, 0,
+        new lightClass(true, PONTUAL,
             vec3(50,50,50),
             vec3(160,160,160),
             vec3(100,100,100),
@@ -75,7 +75,7 @@ function setup(shaders)
             vec3(30.0, 0.0, -1.0),
             10.0,
             1),
-        new lightClass(true, 1,
+        new lightClass(true, DIRECTIONAL,
             vec3(50,50,50),
             vec3(100,100,100),
             vec3(100,100,100),
@@ -83,7 +83,7 @@ function setup(shaders)
             vec3(30.0, 0.0, 0.0),
             10.0,
             1),
-        new lightClass(true, 2,
+        new lightClass(true, SPOTLIGHT,
             vec3(50,50,50),
             vec3(100,100,100),
             vec3(100,100,100),
