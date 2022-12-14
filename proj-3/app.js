@@ -79,7 +79,7 @@ function setup(shaders)
             vec3(30.0, 0.0, -1.0),
             10.0,
             1),
-        new lightClass(false, 1,
+        new lightClass(true, 1,
             vec3(50,50,50),
             vec3(100,100,100),
             vec3(100,100,100),
@@ -111,17 +111,17 @@ function setup(shaders)
             vec3(147, 21, 245),
             vec3(25, 100.0, 80.0),
             vec3(90, 90, 90),
-            10.0);
+            1000.0);
     let pyramid = new materialClass(
             vec3(250, 231, 60),
             vec3(230, 255, 80),
             vec3(200, 200, 200),
             12.0);
     let torus = new materialClass(
-            vec3(255, 0.0, 50.0),
-            vec3(255, 0.0, 0.0),
+            vec3(255, 51.0, 0.0),
+            vec3(255, 51.0, 0.0),
             vec3(200, 200, 200),
-            2.0);
+            122.0);
         
 
     const sceneGUI = new GUI();
@@ -171,7 +171,7 @@ function setup(shaders)
 
         const spotlightGUI = thisLightGUI.addFolder("spotlight settings");
 
-        spotlightGUI.add(light, "aperture", 0, 10, 0.02).step(0.1);
+        spotlightGUI.add(light, "aperture", 0, 20, 0.02).step(0.1);
         spotlightGUI.add(light, "cutoff", 0, 100, 1).step(0.1);
 
         const lightAxisGUI = spotlightGUI.addFolder("axis");

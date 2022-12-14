@@ -81,7 +81,6 @@ void main() {
         if(uLights[i].type == SPOTLIGHT) {
             float angle = acos(dot(L ,normalize(-uLights[i].axis)));
             if(angle < uLights[i].aperture) {
-
                 vec3 Iinc = ambientColor + diffuse + specular;
                 float c = pow(cos(angle), uLights[i].cutoff);
                 I += vec3(mix(0.0, Iinc.x, c),
