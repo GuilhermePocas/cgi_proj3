@@ -1,9 +1,8 @@
 import { buildProgramFromSources, loadShadersFromURLS, setupWebGL } from "../../libs/utils.js";
-import { ortho, lookAt, flatten, mult, mat4, vec4, vec3, inverse, perspective, transpose } from "../../libs/MV.js";
+import { lookAt, flatten, mult, vec4, vec3, inverse, perspective, transpose } from "../../libs/MV.js";
 import { GUI } from "../../libs/dat.gui.module.js";
-import {modelView, loadMatrix, multRotationY, multRotationX, multRotationZ, multTranslation, multScale, pushMatrix, popMatrix, multMatrix} from "../../libs/stack.js";
+import {modelView, loadMatrix, multTranslation, multScale, pushMatrix, popMatrix} from "../../libs/stack.js";
 
-import * as SPHERE from '../../libs/objects/sphere.js';
 import * as CUBE from '../../libs/objects/cube.js';
 import * as CYLINDER from '../../libs/objects/cylinder.js';
 import * as PYRAMID from '../../libs/objects/pyramid.js';
@@ -14,10 +13,7 @@ import { rotateX, rotateY, rotateZ, rotate, cross } from "../../libs/MV.js";
 /** @type WebGLRenderingContext */
 let gl;
 
-let time = 0;           // Global simulation time in days
-let speed = 1/144.0;     // Speed (how many days added to time on each render pass
 let mode;               // Drawing mode (gl.LINES or gl.TRIANGLES)
-let animation = true;   // Animation is running
 
 const FLOOR_LENGTH = 10;
 const FLOOR_HEIGHT = 0.5; 
@@ -71,7 +67,7 @@ function setup(shaders)
     };
     
     let lights = [
-        new lightClass(true, 0,
+        new lightClass(true, PONTUAL,
             vec3(50,50,50),
             vec3(160,160,160),
             vec3(100,100,100),
@@ -79,7 +75,7 @@ function setup(shaders)
             vec3(30.0, 0.0, -1.0),
             10.0,
             1),
-        new lightClass(true, 1,
+        new lightClass(true, DIRECTIONAL,
             vec3(50,50,50),
             vec3(100,100,100),
             vec3(100,100,100),
@@ -87,7 +83,7 @@ function setup(shaders)
             vec3(30.0, 0.0, 0.0),
             10.0,
             1),
-        new lightClass(true, 2,
+        new lightClass(true, SPOTLIGHT,
             vec3(50,50,50),
             vec3(100,100,100),
             vec3(100,100,100),
@@ -155,7 +151,7 @@ function setup(shaders)
         let light = lights[i];
         const thisLightGUI = lightsGUI.addFolder("light " + (i+1));
         thisLightGUI.add(light,"on");
-        const choiceGUI = thisLightGUI.add(light, 'type', {"pontual": PONTUAL, "directional": DIRECTIONAL, "spotlight":SPOTLIGHT})
+        thisLightGUI.add(light, 'type', {"pontual": PONTUAL, "directional": DIRECTIONAL, "spotlight":SPOTLIGHT})
         .onChange(function(x){x != SPOTLIGHT ? spotlightGUI.hide() : spotlightGUI.show()});
 
         const lightPositionGUI = thisLightGUI.addFolder("position")
@@ -199,7 +195,6 @@ function setup(shaders)
     let program = buildProgramFromSources(gl, shaders["shader.vert"], shaders["shader.frag"]);
 
     let mProjection = perspective(camera.fovy, aspect, camera.near, camera.far);
-    //let mProjection = ortho(-VP_DISTANCE*aspect,VP_DISTANCE*aspect, -VP_DISTANCE, VP_DISTANCE,-3*VP_DISTANCE,3*VP_DISTANCE)
 
     mode = gl.TRIANGLES; 
 
@@ -213,15 +208,6 @@ function setup(shaders)
                 break;
             case 's':
                 mode = gl.TRIANGLES;
-                break;
-            case 'p':
-                animation = !animation;
-                break;
-            case '+':
-                if(animation) speed *= 1.1;
-                break;
-            case '-':
-                if(animation) speed /= 1.1;
                 break;
         }
     }
@@ -354,7 +340,6 @@ function setup(shaders)
     function render()
     {
 
-        if(animation) time += speed;
         window.requestAnimationFrame(render);
 
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -379,16 +364,6 @@ function setup(shaders)
         scene();
     }
 
-    function updateColor(color) {
-        gl.useProgram(program);
-        const uColor = gl.getUniformLocation(program, "uColor");
-        gl.uniform3fv(uColor, color);
-    }
-
-    function radToDeg(r) {
-        return r * 180 / Math.PI;
-    }
-        
     function degToRad(d) {
         return d * Math.PI / 180;
     }
